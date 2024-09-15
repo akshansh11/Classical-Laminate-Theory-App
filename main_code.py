@@ -11,6 +11,20 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
+# Function to compute Q matrix from material properties
+def compute_q_matrix(E1, E2, G12, nu12):
+    nu21 = nu12 * (E2 / E1)
+    Q11 = E1 / (1 - nu12 * nu21)
+    Q12 = (nu12 * E2) / (1 - nu12 * nu21)
+    Q22 = E2 / (1 - nu12 * nu21)
+    Q66 = G12
+    Q = np.array([
+        [Q11, Q12, 0],
+        [Q12, Q22, 0],
+        [0, 0, Q66]
+    ])
+    return Q
+
 # Function to compute ABD matrices for each lamina
 def compute_abd(angles, thicknesses, Q):
     n_layers = len(angles)
@@ -45,18 +59,21 @@ def transformation_matrix_inv(theta):
     ])
     return T_inv
 
-# Example stiffness matrix for a material (replace with actual material properties)
-Q = np.array([
-    [181.8, 2.897, 0],
-    [2.897, 10.35, 0],
-    [0, 0, 7.17]
-])
-
 # Streamlit app
 st.title("Classical Laminate Theory App")
 
 # Insert image below the title
 st.image("CLT1.jpg", caption="Classical Laminate Theory", use_column_width=True)
+
+# Sidebar inputs for material properties
+st.sidebar.title("Material Properties")
+E1 = st.sidebar.number_input("E1 (GPa) - Longitudinal Modulus", value=181.0)
+E2 = st.sidebar.number_input("E2 (GPa) - Transverse Modulus", value=10.3)
+G12 = st.sidebar.number_input("G12 (GPa) - In-Plane Shear Modulus", value=7.17)
+nu12 = st.sidebar.number_input("nu12 - Poisson's Ratio", value=0.28)
+
+# Compute the Q matrix based on material properties
+Q = compute_q_matrix(E1, E2, G12, nu12)
 
 # Input fields for the laminate data
 st.sidebar.title("Laminate Inputs")
